@@ -1,0 +1,68 @@
+# Example application question bank — generic, reusable answers for the
+# free-text questions that recur across job applications.
+#
+# Copy this to data/application_bank.yaml and replace with your own answers:
+#   cp data/application_bank.example.yaml data/application_bank.yaml
+# (data/application_bank.yaml is git-ignored so your personal answers --
+#  salary, work authorization, location -- never get committed.)
+#
+# Anything starting with "TODO:" is a placeholder awaiting your real answer.
+# Look up an answer with:  python answers.py <search term>   (e.g. "location")
+
+questions:
+  - id: location_comments
+    question: "Please provide comments regarding the rationale for your location preferences."
+    tags: [location, logistics]
+    tailor: false
+    answer: "TODO: describe where you're based and your remote/hybrid/travel flexibility."
+
+  - id: travel_willingness
+    question: "Are you willing to travel as required for this role?"
+    tags: [logistics]
+    tailor: false
+    answer: "TODO: state your travel willingness (e.g., comfortable traveling ~10% as engagements require)."
+    notes: "Align the percentage with the job posting."
+
+  - id: work_authorization
+    question: "Are you legally authorized to work in the United States?"
+    tags: [eligibility]
+    tailor: false
+    answer: "TODO: state your work authorization status."
+
+  - id: sponsorship
+    question: "Will you now or in the future require sponsorship for an employment visa?"
+    tags: [eligibility]
+    tailor: false
+    answer: "TODO: yes/no and any detail."
+
+  - id: relocation
+    question: "Are you willing to relocate for this position?"
+    tags: [logistics]
+    tailor: false
+    answer: "TODO: yes/no and any conditions."
+
+  - id: salary_expectations
+    question: "What are your salary expectations?"
+    tags: [compensation]
+    tailor: true
+    answer: "TODO: state your target base (and total comp), and note you're open to discussing the full package."
+    notes: "Research the role's published band; place your number sensibly within it."
+
+  - id: availability
+    question: "What is your availability / notice period to start?"
+    tags: [logistics]
+    tailor: false
+    answer: "TODO: e.g., two weeks from offer acceptance."
+
+  - id: why_company
+    question: "Why are you interested in this company / role?"
+    tags: [motivation]
+    tailor: true
+    answer: "TODO (tailor per posting): name the specific team/practice and tie it to your experience."
+    notes: "Reuse and adapt the opening of your tailored cover letter."
+
+  - id: how_heard
+    question: "How did you hear about this position?"
+    tags: [logistics]
+    tailor: true
+    answer: "TODO: set per source (LinkedIn, referral, company careers site, recruiter, etc.)."

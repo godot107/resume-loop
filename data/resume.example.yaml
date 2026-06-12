@@ -1,0 +1,65 @@
+# Example resume — a fictional persona so the tool works out of the box.
+# Copy this to data/resume.yaml and replace with your own details:
+#   cp data/resume.example.yaml data/resume.yaml
+# (data/resume.yaml is git-ignored so your real info never gets committed.)
+
+name: "Alex Rivera"
+phone: "555-0100"
+email: "alex.rivera@example.com"
+linkedin: "linkedin.com/in/alex-rivera-example"
+linkedin_url: "https://linkedin.com/in/alex-rivera-example"
+github: "github.com/alexrivera-example"
+github_url: "https://github.com/alexrivera-example"
+
+summary: "Data engineer with 6+ years building and operating large-scale data pipelines and analytics platforms. Comfortable across the stack --- Python, SQL, Spark, and cloud data services --- with a track record of turning messy source systems into reliable, governed datasets that teams can trust."
+
+education:
+  - school: "State University"
+    location: "Austin, TX"
+    degree: "B.S. in Computer Science"
+    dates: "Aug. 2014 -- May 2018"
+
+certifications:
+  - "AWS Certified: Solutions Architect Associate, Data Analytics Specialty"
+  - "Databricks Certified: Data Engineer Associate"
+
+experience:
+  - title: "Senior Data Engineer"
+    dates: "Jun. 2021 -- Present"
+    company: "Northwind Analytics"
+    location: "Remote"
+    bullets:
+      - "Designed and operate batch and streaming data pipelines on Spark, processing millions of records daily into a governed lakehouse used across analytics and reporting teams."
+      - "Led migration of a legacy ETL stack to a modern cloud data platform, cutting pipeline run times in half and establishing CI/CD with automated tests."
+      - "Partner with analysts and stakeholders to translate business questions into reliable data models, owning delivery from requirements through production."
+
+  - title: "Data Engineer"
+    dates: "Jul. 2018 -- May 2021"
+    company: "Acme Data Co."
+    location: "Austin, TX"
+    bullets:
+      - "Built Python ETL jobs and SQL transformations powering executive dashboards, improving data freshness from daily to near-real-time."
+      - "Implemented data-quality checks and monitoring that reduced reporting incidents by automating validation across key tables."
+
+projects:
+  - name: "Open Air Quality Pipeline"
+    url: "https://github.com/alexrivera-example/air-quality-pipeline"
+    tech: "Python, Spark, Delta Lake"
+    date: "2023"
+    bullets:
+      - "Ingested public sensor APIs into a Delta Lake medallion architecture, exposing clean tables for analysis and visualization."
+
+  - name: "Streaming Anomaly Detection Demo"
+    url: "https://github.com/alexrivera-example/streaming-anomaly"
+    tech: "Kafka, Python, scikit-learn"
+    date: "2022"
+    bullets:
+      - "Built a real-time pipeline that flags anomalies in a streaming event feed, with a simple dashboard for review."
+
+skills:
+  - category: "Languages"
+    items: "Python, SQL (Postgres, MySQL), Bash"
+  - category: "Data \\& Cloud"
+    items: "Apache Spark (PySpark), Databricks, Delta Lake, ETL, Airflow, AWS (Glue, Athena, S3, Kinesis), Docker, Git"
+  - category: "Analytics \\& BI"
+    items: "pandas, NumPy, scikit-learn, Tableau, Power BI; data quality, data governance"

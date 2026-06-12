@@ -1,0 +1,17 @@
+output/
+__pycache__/
+.venv/
+
+# Your personal data — kept local, never committed.
+# Copy the *.example.yaml files to these names and fill in your own details.
+data/resume.yaml
+data/application_bank.yaml
+
+# Per-job generated / personal files
+data/resume_*.yaml
+data/cover_letter_*.yaml
+data/application_*.yaml
+data/jd_*.txt
+
+# ...but keep the committed example bank (matched by the pattern above)
+!data/application_bank.example.yaml

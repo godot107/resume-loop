@@ -1,0 +1,67 @@
+%-------------------------
+% Cover Letter in LaTeX
+%-------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{parskip}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+\pdfgentounicode=1
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    \textbf{\Huge \scshape << name >>} \\ \vspace{1pt}
+    \small << phone >> $|$ \href{mailto:<< email >>}{\underline{<< email >>}} $|$
+    \href{<< linkedin_url >>}{\underline{<< linkedin >>}} $|$
+    \href{<< github_url >>}{\underline{<< github >>}}
+\end{center}
+
+\vspace{1em}
+
+<< date >>
+
+\vspace{1em}
+
+Hiring Manager \\
+<< company >>
+
+\vspace{1em}
+
+Dear Hiring Manager,
+
+\vspace{0.5em}
+
+<% for paragraph in cover_letter_paragraphs %>
+<< paragraph >>
+
+<% endfor %>
+
+Sincerely,
+
+\vspace{2em}
+
+<< name >>
+
+\end{document}

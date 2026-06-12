@@ -1,0 +1,37 @@
+# Skill / keyword aliases for match.py
+#
+# Purpose: a job description and your resume often name the SAME skill with
+# DIFFERENT words ("ML" vs "machine learning", "Postgres" vs "PostgreSQL").
+# match.py folds every variant below to its canonical form on BOTH sides before
+# scoring, so those no longer count as misses.
+#
+# Format:  canonical: [variant, variant, ...]
+#   - The canonical may be multiword ("machine learning"); each variant should
+#     be a SINGLE token (no spaces) — e.g. ml, k8s, sklearn.
+#   - Only add genuine synonym pairs whose surface forms DIFFER. Terms both
+#     sides already spell the same way (e.g. "python", "aws") need no entry.
+#   - Folding also protects these tokens from the lemmatizer, so add a term here
+#     if stemming would corrupt it.
+#
+# This file is generic (not per-job) and is committed. Extend it for your stack.
+
+aliases:
+  machine learning: [ml]
+  deep learning: [dl]
+  artificial intelligence: [ai]
+  natural language processing: [nlp]
+  large language model: [llm, llms]
+  generative ai: [genai, genaipowered]
+  computer vision: [cv]
+  scikit-learn: [sklearn]
+  postgresql: [postgres, postgre]
+  javascript: [js]
+  typescript: [ts]
+  kubernetes: [k8s]
+  continuous integration: [ci]
+  extract transform load: [etl]
+  business intelligence: [bi]
+  amazon sagemaker: [sagemaker]
+  google cloud platform: [gcp]
+  data visualization: [dataviz, viz]
+  experimentation: [ab, abtesting]
