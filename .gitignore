@@ -6,6 +6,7 @@ __pycache__/
 # Copy the *.example.yaml files to these names and fill in your own details.
 data/resume.yaml
 data/application_bank.yaml
+data/projects_library.yaml
 
 # Per-job generated / personal files
 data/resume_*.yaml

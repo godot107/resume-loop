@@ -1,0 +1,54 @@
+# Example project library — fictional, matching data/resume.example.yaml.
+# Copy this to data/projects_library.yaml and replace with your own projects:
+#   cp data/projects_library.example.yaml data/projects_library.yaml
+# (data/projects_library.yaml is git-ignored so your real links never get committed.)
+#
+# Purpose: the default resume.yaml shows a fixed handful of projects; this file
+# holds your FULL set so each tailored variant can swap in the ones that fit.
+#
+# Tailoring workflow:
+#   1. Read this file + the JD.
+#   2. Pick the 2-3 `verified` entries whose `relevance` tags best match the
+#      role and that cover ground the work-experience section doesn't.
+#   3. Copy those entries' name/url/tech/date/bullets into the `projects:`
+#      section of resume_<job_id>.yaml (drop `relevance`; trim bullets to keep
+#      the resume to one page).
+#
+# Rules: only TRUE, verified projects belong in `verified`. Never fabricate
+# bullets — if a repo isn't written up yet, leave it under `candidates` and
+# flesh it out from its README before using it. ~2 bullets max per project.
+
+verified:
+  - name: "Open Air Quality Pipeline"
+    url: "https://github.com/alexrivera-example/air-quality-pipeline"
+    tech: "Python, Spark, Delta Lake"
+    date: "2023"
+    relevance: [data engineering, etl, streaming, cloud]
+    bullets:
+      - "Ingested public sensor APIs into a Delta Lake medallion architecture, exposing clean tables for analysis and visualization."
+
+  - name: "Streaming Anomaly Detection Demo"
+    url: "https://github.com/alexrivera-example/streaming-anomaly"
+    tech: "Kafka, Python, scikit-learn"
+    date: "2022"
+    relevance: [anomaly detection, streaming, real-time, ml]
+    bullets:
+      - "Built a real-time pipeline that flags anomalies in a streaming event feed, with a simple dashboard for review."
+
+  - name: "Sales Forecasting Notebook"
+    url: "https://github.com/alexrivera-example/sales-forecasting"
+    tech: "Python, statsmodels, Prophet"
+    date: "2022"
+    relevance: [forecasting, time-series, regression]
+    bullets:
+      - "Time-series models forecasting weekly sales from historical demand, with backtesting and honest error analysis."
+
+# Repos you have but haven't written up yet. Read the README and move one to
+# `verified` with truthful bullets before putting it on a resume.
+candidates:
+  - name: "portfolio-site"
+    url: "https://github.com/alexrivera-example/portfolio-site"
+    note: "Personal website / portfolio source. Usually not a standalone resume project."
+  - name: "kaggle-experiments"
+    url: "https://github.com/alexrivera-example/kaggle"
+    note: "Assorted notebooks — pick a standout and write it up before using."

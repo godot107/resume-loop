@@ -35,6 +35,21 @@ Options:
 2. Edit the copy — trim or reorder sections for the target role
 3. Run: `python build.py --data data/resume_ml.yaml --output resume_ml`
 
+## Project library
+
+`data/projects_library.yaml` is the master catalog of real, resume-worthy
+projects (sourced from the candidate's GitHub + personal website). The default
+`resume.yaml` shows a fixed three; this file holds the full set so each tailored
+variant can swap in the projects that actually fit the role.
+
+When tailoring `resume_<job_id>.yaml`, **pick the 2–3 `verified` entries whose
+`relevance` tags best match the JD** (and that cover ground the work-experience
+section doesn't), then copy their `name`/`url`/`tech`/`date`/`bullets` into the
+resume's `projects:` section (drop `relevance`; trim bullets to stay one page).
+Entries under `candidates:` are repos not yet written up — read the README and
+move one to `verified` with truthful bullets before putting it on a resume.
+Never fabricate project content.
+
 ## Matching against a job description
 
 `match.py` scores a resume YAML against a job description and lists the JD

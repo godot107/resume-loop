@@ -10,6 +10,8 @@ linkedin: "linkedin.com/in/alex-rivera-example"
 linkedin_url: "https://linkedin.com/in/alex-rivera-example"
 github: "github.com/alexrivera-example"
 github_url: "https://github.com/alexrivera-example"
+website: "alexrivera.example.com"
+website_url: "https://alexrivera.example.com"
 
 summary: "Data engineer with 6+ years building and operating large-scale data pipelines and analytics platforms. Comfortable across the stack --- Python, SQL, Spark, and cloud data services --- with a track record of turning messy source systems into reliable, governed datasets that teams can trust."
 
