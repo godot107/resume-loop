@@ -69,6 +69,19 @@ def build_profile(job_id: str | None = None) -> tuple[dict[str, str], dict[str, 
         if val:
             fields[key] = str(val).strip()
 
+    # Education (highest / most recent entry) for forms that ask for it.
+    education = resume.get("education") or []
+    if education:
+        top = education[0]
+        school = str(top.get("school", "")).strip()
+        degree = str(top.get("degree", "")).strip()
+        if school:
+            fields["school"] = school
+        if degree:
+            fields["degree"] = degree
+        if school or degree:
+            fields["education"] = ", ".join(p for p in (degree, school) if p)
+
     # Application answers: generic bank overlaid with per-job answers; drop TODO placeholders.
     for q in load_questions(job_id):
         ans = " ".join(str(q.get("answer", "")).split())

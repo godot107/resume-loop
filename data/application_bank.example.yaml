@@ -66,3 +66,49 @@ questions:
     tags: [logistics]
     tailor: true
     answer: "TODO: set per source (LinkedIn, referral, company careers site, recruiter, etc.)."
+
+  - id: country
+    question: "Country of residence"
+    tags: [location]
+    tailor: false
+    answer: "TODO: e.g. United States"
+
+  - id: location
+    question: "Your location (city / metro)"
+    tags: [location]
+    tailor: false
+    answer: "TODO: e.g. City, ST, Country"
+
+  # --- Voluntary self-identification (EEO) -------------------------------------
+  # autofill.py can select these on dropdowns/radios for you. They're voluntary on
+  # every form, and you always review before submitting. Use the wording the forms
+  # use (or "Decline to self-identify" / "I don't wish to answer").
+  - id: gender
+    question: "Gender"
+    tags: [eeo]
+    tailor: false
+    answer: "TODO: e.g. Male / Female / Decline to self-identify"
+
+  - id: hispanic_ethnicity
+    question: "Are you Hispanic or Latino?"
+    tags: [eeo]
+    tailor: false
+    answer: "TODO: e.g. No, not Hispanic or Latino / Yes / Decline to self-identify"
+
+  - id: race
+    question: "Race"
+    tags: [eeo]
+    tailor: false
+    answer: "TODO: e.g. Asian / White / Black or African American / Decline to self-identify"
+
+  - id: veteran_status
+    question: "Protected veteran status"
+    tags: [eeo]
+    tailor: false
+    answer: "TODO: e.g. I am not a protected veteran / I identify as a protected veteran"
+
+  - id: disability_status
+    question: "Disability status"
+    tags: [eeo]
+    tailor: false
+    answer: "TODO: e.g. No, I do not have a disability / Yes / I do not want to answer"

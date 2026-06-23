@@ -190,21 +190,31 @@ playwright install chromium          # one-time, after pip install
 python autofill.py <url> --job-id deloitte_ds
 ```
 
-Flow: it opens the URL → you log in / solve CAPTCHA / navigate to the form and
-press Enter → it fills recognized fields (green outline) and attaches the
+Flow: it opens the URL → you log in / solve CAPTCHA / navigate to the form →
+**continue** (press Enter in the terminal, or — when launched without an
+interactive terminal — click the green button the script injects at the top of
+the page) → it fills recognized fields (green outline) and attaches the
 resume/cover letter PDFs, flagging anything it skipped (orange) → you review and
 submit.
 
 - `app_profile.py` flattens `resume_<job_id>.yaml` + the answer bank + per-job
-  answers into one `{field: value}` profile, and finds the job's PDFs in
-  `output/<job_id>/` by keyword (`resume` / `cover`). Inspect with
-  `python app_profile.py --job-id <id>`.
-- Field matching lives in `ALIASES` in `autofill.py` — add label keywords there to
-  recognize more fields. Native inputs, textareas, `<select>`, and file inputs are
-  handled, including forms inside an iframe (Greenhouse/Lever).
-- Not handled on purpose: radio buttons, checkboxes, and custom React dropdowns —
-  these are left highlighted for you, so sensitive eligibility answers are never
-  mis-selected automatically.
+  answers into one `{field: value}` profile (including education pulled from the
+  resume), and finds the job's PDFs in `output/<job_id>/` by keyword
+  (`resume` / `cover`). Inspect with `python app_profile.py --job-id <id>`.
+- Field matching lives in `ALIASES` in `autofill.py` (whole-word matching) — add
+  label keywords there to recognize more fields. Native inputs, textareas,
+  `<select>`, and file inputs are handled, including forms inside an iframe
+  (Greenhouse/Lever).
+- **Choice fields** (`<select>`, radio groups, and best-effort custom React
+  dropdowns) are auto-selected **only for an explicit allowlist** of stable
+  demographic/eligibility answers — `CHOICE_HINTS` in `autofill.py`: work
+  authorization, sponsorship, relocation, travel, country, gender, Hispanic/Latino
+  ethnicity, race, veteran status, disability status. Option matching is
+  exact-then-startswith only (never a loose substring), so e.g. `male` can't
+  select `Female`. Their values live in `data/application_bank.yaml`.
+- Still left for you: checkboxes, any choice **outside** the allowlist, and custom
+  dropdowns the script can't open/match (flagged orange). You always review every
+  field — especially eligibility/EEO — before submitting.
 
 ## Template syntax
 
