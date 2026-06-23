@@ -8,6 +8,7 @@ Used by autofill.py. Run directly to inspect what would be filled:
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 import yaml
@@ -68,6 +69,22 @@ def build_profile(job_id: str | None = None) -> tuple[dict[str, str], dict[str, 
         val = resume.get(key)
         if val:
             fields[key] = str(val).strip()
+
+    # Personal website / portfolio (prefer the full URL form).
+    website = resume.get("website_url") or resume.get("website")
+    if website:
+        fields["website"] = str(website).strip()
+
+    # Current role (most recent experience entry) for "current employer/title" fields.
+    experience = resume.get("experience") or []
+    if experience:
+        cur = experience[0]
+        title = str(cur.get("title", "")).strip()
+        company = re.sub(r"\s*\(.*\)\s*$", "", str(cur.get("company", "")).strip())
+        if company:
+            fields["current_company"] = company
+        if title:
+            fields["current_title"] = title
 
     # Education (highest / most recent entry) for forms that ask for it.
     education = resume.get("education") or []

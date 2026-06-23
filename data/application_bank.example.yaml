@@ -79,6 +79,24 @@ questions:
     tailor: false
     answer: "TODO: e.g. City, ST, Country"
 
+  - id: state
+    question: "State / province of residence"
+    tags: [location]
+    tailor: false
+    answer: "TODO: your state / province (e.g. New York)"
+
+  - id: zip
+    question: "ZIP / postal code"
+    tags: [location]
+    tailor: false
+    answer: "TODO: your ZIP / postal code (e.g. 12345)"
+
+  - id: age_18
+    question: "Are you at least 18 years of age?"
+    tags: [eligibility]
+    tailor: false
+    answer: "TODO: yes/no"
+
   # --- Voluntary self-identification (EEO) -------------------------------------
   # autofill.py can select these on dropdowns/radios for you. They're voluntary on
   # every form, and you always review before submitting. Use the wording the forms

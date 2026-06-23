@@ -193,9 +193,17 @@ python autofill.py <url> --job-id deloitte_ds
 Flow: it opens the URL → you log in / solve CAPTCHA / navigate to the form →
 **continue** (press Enter in the terminal, or — when launched without an
 interactive terminal — click the green button the script injects at the top of
-the page) → it fills recognized fields (green outline) and attaches the
-resume/cover letter PDFs, flagging anything it skipped (orange) → you review and
-submit.
+the page) → it fills recognized fields on the current page (green outline) and
+attaches the resume/cover letter PDFs, flagging anything it skipped (orange) →
+you review.
+
+It works **page by page**: after each page it pauses, and on multi-page forms
+(Workday, multi-step Greenhouse) you advance to the next page and continue to
+autofill it too — repeat until you finish & submit yourself. End the loop by
+pressing `q` in the terminal, or by closing the browser window (no-terminal mode).
+Note: heavy SPA forms like Workday use custom widgets and type-ahead
+autocompletes, so per-page coverage is partial — text fields fill, exotic
+controls are left orange for you.
 
 - `app_profile.py` flattens `resume_<job_id>.yaml` + the answer bank + per-job
   answers into one `{field: value}` profile (including education pulled from the

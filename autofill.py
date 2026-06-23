@@ -7,6 +7,12 @@ any CAPTCHA; then the script fills the fields it recognizes from your profile
 You review the highlighted fields and click Submit yourself — the script never
 submits anything.
 
+Works page-by-page: it fills the current page, then waits while you review and
+advance. On multi-page forms (Workday, multi-step Greenhouse) just move to the
+next page and autofill it too — repeat until you finish. Continue/finish either
+from the terminal (Enter / 'q') or, when there's no terminal, from a button the
+script injects at the top of the page (click to continue, close window to finish).
+
     python autofill.py <url> --job-id deloitte_ds
 
 One-time setup:
@@ -60,6 +66,15 @@ ALIASES: dict[str, list[str]] = {
     "country":            ["country"],
     "location":           ["location (city", "current location", "where are you located",
                            "city", "metro", "location"],
+    "state":              ["state", "province", "region"],
+    "zip":                ["zip", "zip code", "postal code", "postcode"],
+    "website":            ["website", "portfolio", "personal website", "personal site",
+                           "web address"],
+    "current_company":    ["current employer", "current company", "present employer"],
+    "current_title":      ["current title", "current job title", "current role",
+                           "current position"],
+    "age_18":             ["18 or older", "at least 18", "over 18", "years of age",
+                           "are you 18", "18 years"],
     "school":             ["school", "university", "college", "institution", "where did you study"],
     "degree":             ["degree", "level of education", "highest level of education",
                            "education level"],
@@ -71,7 +86,8 @@ ALIASES: dict[str, list[str]] = {
 }
 
 # keys typically answered as yes/no on dropdowns or selects
-YES_NO = {"work_authorization": "yes", "sponsorship": "no", "relocation": "no", "travel_willingness": "yes"}
+YES_NO = {"work_authorization": "yes", "sponsorship": "no", "relocation": "no",
+          "travel_willingness": "yes", "age_18": "yes"}
 
 # Only these keys get auto-selected on radios / custom dropdowns. Everything else
 # (unknown choices, free-form selects) is still left highlighted for the user.
@@ -80,7 +96,7 @@ YES_NO = {"work_authorization": "yes", "sponsorship": "no", "relocation": "no", 
 # field may be auto-selected.
 CHOICE_ALLOWLIST = {
     "work_authorization", "sponsorship", "relocation", "travel_willingness",
-    "country", "gender", "hispanic_ethnicity", "race", "veteran_status",
+    "age_18", "country", "gender", "hispanic_ethnicity", "race", "veteran_status",
     "disability_status",
 }
 
@@ -157,34 +173,56 @@ _INJECT_BAR_JS = r"""
 """
 
 
-def wait_for_browser_signal(context, console_msg: str, bar_text: str, label: str) -> None:
-    """Block until the user clicks the injected button in the browser.
+def _active_page(context):
+    """The page the user is currently on, or None if the window has been closed."""
+    pages = [p for p in context.pages if not p.is_closed()]
+    return pages[-1] if pages else None
 
-    Re-injects the banner each poll so it survives page navigations, and reads
-    back window.name (set by the button) to detect the click.
-    """
+
+def wait_for_continue(context, console_msg: str, bar_text: str, label: str) -> bool:
+    """Pause between pages. Return True to autofill another page, False to stop.
+
+    This is what makes multi-page forms (Workday, multi-step Greenhouse) work: the
+    caller fills the current page, then waits here while the user reviews and either
+    advances to the next page (→ fill it too) or finishes.
+
+    TTY: read a line — Enter continues, 'q'/'done' finishes.
+    No TTY: drive from the browser — click the injected button to continue, or just
+    close the window to finish. Re-injects the banner each tick so it survives
+    navigation, and reads back window.name (set by the button) to detect the click."""
     print(console_msg)
-    print(f"   (no terminal input — click the “{label}” button at the top of the browser)")
+    if sys.stdin and sys.stdin.isatty():
+        try:
+            ans = input(f"   [Enter] = {label.lower()}  ·  [q] = finish: ").strip().lower()
+        except EOFError:
+            return False
+        return ans not in ("q", "quit", "done", "n", "no", "stop")
+
+    print(f"   (click “{label}” at the top of the page, or close the browser to finish)")
     while True:
-        page = context.pages[-1] if context.pages else None
-        if page is not None:
-            try:
-                if page.evaluate("() => window.name") == _SIGNAL_TOKEN:
-                    page.evaluate("() => { window.name = ''; }")
-                    return
-                page.evaluate(_INJECT_BAR_JS, [bar_text, label, _SIGNAL_TOKEN])
-            except Exception:
-                pass  # mid-navigation; try again next tick
+        page = _active_page(context)
+        if page is None:
+            return False  # user closed the window → done
+        try:
+            if page.evaluate("() => window.name") == _SIGNAL_TOKEN:
+                page.evaluate("() => { window.name = ''; }")
+                return True
+            page.evaluate(_INJECT_BAR_JS, [bar_text, label, _SIGNAL_TOKEN])
+        except Exception:
+            pass  # mid-navigation or page closing; retry next tick
         time.sleep(0.5)
 
 
-def pause(context, console_msg: str, bar_text: str, label: str) -> None:
-    """Pause for the user. Uses stdin when a terminal is attached, otherwise
-    falls back to a clickable button injected into the browser."""
-    if sys.stdin and sys.stdin.isatty():
-        input(console_msg)
-    else:
-        wait_for_browser_signal(context, console_msg, bar_text, label)
+def print_summary(page_num: int, filled: list, skipped: list) -> None:
+    print(f"\n=== Autofill summary — page {page_num} ===")
+    print(f"Filled ({len(filled)}):")
+    for label, key in filled:
+        print(f"  + {label[:52]:52} <- {key}")
+    if skipped:
+        print(f"\nSkipped ({len(skipped)}) — do these yourself:")
+        for label, why in skipped:
+            print(f"  - {label[:52]:52} ({why})")
+    print("\nGreen outline = filled, orange = needs your attention.")
 
 
 def match_key(label: str) -> str | None:
@@ -448,45 +486,48 @@ def main() -> None:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
         context = browser.new_context(accept_downloads=True)
-        page = context.new_page()
-        page.goto(args.url)
+        context.new_page().goto(args.url)
 
-        pause(
+        # First page: wait for the user to log in and reach the form.
+        proceed = wait_for_continue(
             context,
             "\n>> Log in, dismiss cookie/consent banners, solve any CAPTCHA, and open the\n"
-            "   application FORM. Then press Enter here to autofill...",
-            "Logged in and on the application form? Click to autofill →",
-            "Autofill now",
+            "   application FORM (first page).",
+            "Logged in and on the form? Autofill this page →",
+            "Autofill this page",
         )
 
-        page = context.pages[-1]  # in case login opened a new tab
-        filled, skipped = [], []
-        for frame in page.frames:  # ATS forms (Greenhouse, Lever) often live in an iframe
-            try:
-                process(frame, fields, attachments, filled, skipped)
-                process_radios(frame, fields, filled, skipped)
-                process_comboboxes(frame, fields, filled, skipped)
-            except Exception:
-                continue
+        # Fill one page per pass. Multi-page forms (Workday, multi-step Greenhouse):
+        # review each page, advance to the next, and autofill it too — repeat until
+        # you finish & submit (then close the window, or press 'q' in a terminal).
+        page_num = 0
+        while proceed:
+            page = _active_page(context)
+            if page is None:
+                break
+            page_num += 1
+            filled, skipped = [], []
+            for frame in page.frames:  # ATS forms (Greenhouse, Lever) often live in an iframe
+                try:
+                    process(frame, fields, attachments, filled, skipped)
+                    process_radios(frame, fields, filled, skipped)
+                    process_comboboxes(frame, fields, filled, skipped)
+                except Exception:
+                    continue
+            print_summary(page_num, filled, skipped)
 
-        print("\n=== Autofill summary ===")
-        print(f"Filled ({len(filled)}):")
-        for label, key in filled:
-            print(f"  + {label[:52]:52} <- {key}")
-        if skipped:
-            print(f"\nSkipped ({len(skipped)}) — do these yourself:")
-            for label, why in skipped:
-                print(f"  - {label[:52]:52} ({why})")
-        print("\nGreen outline = filled, orange = needs your attention.")
+            proceed = wait_for_continue(
+                context,
+                "\n>> Review THIS page (especially eligibility/EEO) and fix anything. Then either\n"
+                "   advance to the NEXT page and autofill it, or finish & submit yourself.",
+                "On the next page? Autofill it →",
+                "Autofill next page",
+            )
 
-        pause(
-            context,
-            "\n>> Review EVERY field (especially eligibility questions), fix anything, and\n"
-            "   click Submit yourself. Press Enter to close the browser when done...",
-            "Reviewed and submitted? Click to close the browser →",
-            "Close browser",
-        )
-        browser.close()
+        try:
+            browser.close()
+        except Exception:
+            pass  # user may have already closed the window
 
 
 if __name__ == "__main__":
