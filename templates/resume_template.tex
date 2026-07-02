@@ -22,7 +22,7 @@
 
 \pagestyle{fancy}
 \fancyhf{}
-\fancyfoot{}
+\fancyfoot[C]{<% if website %>\footnotesize\href{<< website_url >>}{\color{black}Live demos \& write-ups: << website >>}<% endif %>}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
 
@@ -139,9 +139,9 @@
 <% for project in projects %>
       \resumeProjectHeading
 <% if project.url %>
-          {\textbf{\href{<< project.url >>}{\underline{<< project.name >>}}}<% if project.tech %> $|$ \emph{<< project.tech >>}<% endif %>}{<< project.date >>}
+          {\textbf{\href{<< project.url >>}{\underline{<< project.name >>}}}<% if project.tech %> $|$ \emph{<< project.tech >>}<% endif %><% if project.demo %> $|$ \href{<< project.demo >>}{\underline{live demo}}<% endif %>}{<< project.date >>}
 <% else %>
-          {\textbf{<< project.name >>}<% if project.tech %> $|$ \emph{<< project.tech >>}<% endif %>}{<< project.date >>}
+          {\textbf{<< project.name >>}<% if project.tech %> $|$ \emph{<< project.tech >>}<% endif %><% if project.demo %> $|$ \href{<< project.demo >>}{\underline{live demo}}<% endif %>}{<< project.date >>}
 <% endif %>
           \resumeItemListStart
 <% for bullet in project.bullets %>
