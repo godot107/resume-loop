@@ -229,6 +229,16 @@ controls are left orange for you.
 The template uses `<< var >>` (variables) and `<% block %>` (loops/conditionals)
 instead of `{{ }}` / `{% %}` to avoid clashing with LaTeX braces.
 
+**Inline LaTeX is supported in body text.** Rendering runs with `autoescape=False`
+(`build.py`), so raw LaTeX in a YAML string passes through verbatim. To draw a
+recruiter's eye, wrap key metrics or JD-critical skills in `\textbf{...}` directly
+in a bullet — e.g. `Cut runtime \textbf{40\%}`. This is a human-skim optimization
+only (ATS strips formatting; it won't move the `match.py` score), so keep it
+sparse: roughly ≤1 bold span per bullet, applied per-job in `resume_<job_id>.yaml`
+*after* the score is settled, not in the base `resume.yaml`. `lint.py` doesn't
+flag `\` or `{ }`, but the four specials (`% & # $`) still need escaping inside the
+braces — so bolding a figure means `\textbf{\$12B}`, not `\textbf{$12B}`.
+
 ## Structure
 
 ```
