@@ -1,6 +1,10 @@
 output/
 __pycache__/
 .venv/
+*.swp
+
+# Secrets (e.g. HUNTER_API_KEY, GOOGLE_API_KEY) — never commit; keep .env.example
+.env
 
 # Your personal data — kept local, never committed.
 # Copy the *.example.yaml files to these names and fill in your own details.
@@ -12,6 +16,7 @@ data/projects_library.yaml
 data/resume_*.yaml
 data/cover_letter_*.yaml
 data/application_*.yaml
+data/contacts_*.yaml
 data/jd_*.txt
 
 # ...but keep the committed example bank (matched by the pattern above)

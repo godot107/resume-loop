@@ -239,6 +239,60 @@ sparse: roughly ≤1 bold span per bullet, applied per-job in `resume_<job_id>.y
 flag `\` or `{ }`, but the four specials (`% & # $`) still need escaping inside the
 braces — so bolding a figure means `\textbf{\$12B}`, not `\textbf{$12B}`.
 
+## Cold outreach (human-in-the-loop)
+
+After you apply, `outreach.py` drafts a short **cold-intro email** to a recruiter
+or hiring manager letting them know you applied. Same hybrid split as the ship
+gate: the script owns the deterministic half (loads the contact, pulls your real
+facts from the resume via `app_profile`, optionally resolves the email with
+Hunter.io, assembles a truthful skeleton), and **Claude owns the judgment half** —
+writing the one specific `[HOOK]` sentence and creating the Gmail *draft*. Nothing
+auto-sends: you review the draft and hit send yourself, mirroring autofill's "you
+click Submit."
+
+Contacts for a job live in `data/contacts_<job_id>.yaml` (git-ignored PII; copy
+`data/contacts.example.yaml`). Each has `name`, `title`, `email` (or null until
+found), `domain`, `linkedin`, `source` (`linkedin`/`hunter`/`manual`), and a
+`status` you update (`draft`/`sent`/`replied`). Top-level `company`/`role`/`domain`
+apply to all contacts.
+
+```bash
+python outreach.py --search-people "recruiter data" --job-id deloitte_ds  # find who
+python outreach.py --find-email --name "Jane Smith" --job-id deloitte_ds --save
+python outreach.py --job-id deloitte_ds            # draft package(s) + PREP block
+python outreach.py --job-id deloitte_ds --json     # machine-readable, for Claude
+python outreach.py --domain-search deloitte.com --dept it   # discover people (Hunter)
+python outreach.py --verify jane.smith@deloitte.com
+```
+
+The pipeline is **find who → resolve the email → draft → you send**. Keys are read
+from a git-ignored `.env` (auto-loaded — no `source` needed; see `.env.example`).
+
+- **Find who — `--search-people` (Serper.dev web search).** LinkedIn has no
+  people-search API (deprecated 2015; recruiter data is gated enterprise), and
+  scraping it risks your account. So this searches *Google* (via Serper's JSON
+  API), restricted to public `linkedin.com/in` profiles — never LinkedIn's API or
+  your login. Returns name/headline/profile-URL for you to eyeball. Needs
+  `SERPER_API_KEY` (free credits at serper.dev). You still decide *who* — it only
+  surfaces candidates. (Backend note: Google's own Custom Search JSON API is
+  closed to new Cloud projects — a fresh project 403s with "does not have access"
+  no matter how it's configured — so Serper is the drop-in replacement. Swapping
+  backends is a ~15-line change in `web_search()`.)
+- **Resolve the email — Hunter.io** (`HUNTER_API_KEY`, never commit). `--find-email`
+  turns a name + company domain into an address (Email Finder), `--domain-search`
+  lists people at a company, `--verify` checks deliverability. `--save` writes the
+  result into `contacts_<job_id>.yaml`. Works without a key too — paste an email
+  you found manually.
+- **LinkedIn automation is still off-limits.** `--search-people` goes *around*
+  LinkedIn via Google; don't add scrapers that hit LinkedIn directly.
+- **The `[HOOK]` is deliberately left blank by the script** (same no-fabrication
+  rule as everywhere else). The default output prints a PREP block — your real
+  role bullets + projects + a JD excerpt — and Claude writes ONE truthful sentence
+  tying your strongest fact to the role, then creates the Gmail draft. Keep it 1:1
+  and personal (not bulk) — that's what gets replies and stays clear of spam.
+- Reuses `app_profile.build_profile` for your sender facts and `find_attachments`
+  to attach the resume PDF (resume only — the cover letter is application-specific).
+
 ## Structure
 
 ```
@@ -250,13 +304,17 @@ resume-builder/
 ├── answers.py             # Looks up reusable application answers
 ├── app_profile.py         # Flattens resume + answers into an autofill profile
 ├── autofill.py            # Human-in-the-loop browser autofiller (Playwright)
+├── outreach.py            # Cold-intro drafter + people search (Serper) + email lookup (Hunter)
+├── .env.example           # Template for API keys (copy to .env; git-ignored)
 ├── requirements.txt
 ├── data/
 │   ├── resume.yaml        # Resume content
 │   ├── jd_<job_id>.txt    # Pasted job-description text for match.py (git-ignored)
 │   ├── skill_aliases.yaml # Synonym map for match.py (committed, editable)
 │   ├── application_bank.yaml      # Reusable application question answers
-│   └── application_<job_id>.yaml  # Per-job answer overrides (git-ignored)
+│   ├── application_<job_id>.yaml  # Per-job answer overrides (git-ignored)
+│   ├── contacts.example.yaml      # Template for the outreach contacts file
+│   └── contacts_<job_id>.yaml     # Per-job outreach contacts (git-ignored)
 ├── templates/
 │   ├── resume.tex         # Original static template (reference)
 │   └── resume_template.tex  # Jinja2 template
