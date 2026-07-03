@@ -1,0 +1,29 @@
+# Example cold-outreach contacts file. Copy to data/contacts_<job_id>.yaml
+# (which is git-ignored, since it holds people's names + emails):
+#
+#   cp data/contacts.example.yaml data/contacts_deloitte_ds.yaml
+#
+# Then fill in the recruiter / hiring manager you want to reach after applying.
+# Find them by hand on LinkedIn (keep LinkedIn manual — no scraping), and/or
+# resolve their email with Hunter.io:
+#
+#   python outreach.py --find-email --name "Jane Smith" --job-id deloitte_ds --save
+#
+# Draft the intro email(s) for review (Claude fills the [HOOK] + makes a Gmail draft):
+#
+#   python outreach.py --job-id deloitte_ds
+
+company: Deloitte
+role: Data Scientist
+job_url: https://careers.deloitte.com/...
+domain: deloitte.com          # used as the default for --find-email
+
+contacts:
+  - name: Jane Smith
+    title: Data Science Recruiter
+    email: jane.smith@deloitte.com   # or leave null until Hunter/you find it
+    domain: deloitte.com
+    linkedin: https://www.linkedin.com/in/janesmith
+    source: linkedin                 # linkedin | hunter | manual
+    confidence: null                 # Hunter score (0-100) when applicable
+    status: draft                    # draft | sent | replied — you update this
