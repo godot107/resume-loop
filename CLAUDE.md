@@ -256,6 +256,22 @@ found), `domain`, `linkedin`, `source` (`linkedin`/`hunter`/`manual`), and a
 `status` you update (`draft`/`sent`/`replied`). Top-level `company`/`role`/`domain`
 apply to all contacts.
 
+**Contact bank (cross-job memory).** The per-job files are siloed, so on its own
+`outreach.py` can't tell you already emailed a recruiter for a *different* role at
+the same company. `contact_bank.py` closes that gap: it aggregates every per-job
+contact into one store, `data/contacts.yaml` (git-ignored PII), keyed by email.
+Each draft run upserts the run's contacts (a `history` entry per `job_id`+channel),
+and before drafting, `outreach.py` looks each person up — if there's a prior touch
+for another job, it prints a `⚠ Prior contact` notice (with a recency guard) and
+switches the skeleton from a cold intro to a **warm follow-up** that references the
+earlier role. Inspect/curate the bank directly:
+
+```bash
+python contact_bank.py                 # list everyone + touch history
+python contact_bank.py pwc             # filter by name / email / company
+python contact_bank.py --mark jane@x.com --job R123 --status sent   # update status
+```
+
 ```bash
 python outreach.py --search-people "recruiter data" --job-id deloitte_ds  # find who
 python outreach.py --find-email --name "Jane Smith" --job-id deloitte_ds --save
@@ -305,6 +321,7 @@ resume-builder/
 ├── app_profile.py         # Flattens resume + answers into an autofill profile
 ├── autofill.py            # Human-in-the-loop browser autofiller (Playwright)
 ├── outreach.py            # Cold-intro drafter + people search (Serper) + email lookup (Hunter)
+├── contact_bank.py        # Cross-job contact memory (cold intro vs. warm follow-up)
 ├── .env.example           # Template for API keys (copy to .env; git-ignored)
 ├── requirements.txt
 ├── data/
@@ -314,7 +331,8 @@ resume-builder/
 │   ├── application_bank.yaml      # Reusable application question answers
 │   ├── application_<job_id>.yaml  # Per-job answer overrides (git-ignored)
 │   ├── contacts.example.yaml      # Template for the outreach contacts file
-│   └── contacts_<job_id>.yaml     # Per-job outreach contacts (git-ignored)
+│   ├── contacts_<job_id>.yaml     # Per-job outreach contacts (git-ignored)
+│   └── contacts.yaml              # Central cross-job contact bank (git-ignored PII)
 ├── templates/
 │   ├── resume.tex         # Original static template (reference)
 │   └── resume_template.tex  # Jinja2 template

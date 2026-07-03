@@ -51,6 +51,7 @@ from pathlib import Path
 import yaml
 
 from app_profile import build_profile, find_attachments, _load_yaml, DATA
+import contact_bank
 
 HUNTER_BASE = "https://api.hunter.io/v2"
 
@@ -293,7 +294,33 @@ def build_draft(job_id: str, contact: dict, meta: dict) -> dict:
     cur_title = fields.get("current_title", "")
     cur_company = fields.get("current_company", "")
 
-    if role:
+    # Cross-job memory: has this person heard from us before (for another role)?
+    # If so, draft a warm follow-up rather than a redundant cold intro.
+    rec = contact_bank.lookup(
+        email=contact.get("email"), name=contact.get("name"), company=company
+    )
+    prior = contact_bank.prior_touches(rec, exclude_job_id=job_id)
+
+    if prior:
+        subject = f"Another role at {company} — {full_name}".rstrip(" —")
+        prior_role = prior[-1].get("role")
+        if role and prior_role and prior_role != role:
+            applied_line = (
+                f"We were recently in touch about the {prior_role} role at {company}. "
+                f"I've since applied for the {role} position as well and wanted to make "
+                f"sure it was on your radar."
+            )
+        elif role:
+            applied_line = (
+                f"Following up on my earlier note about the {role} role at {company} — "
+                f"I wanted to reconnect and reiterate my interest."
+            )
+        else:
+            applied_line = (
+                f"We were recently in touch about a role at {company}, and I wanted to "
+                f"reconnect about another opening I've applied for."
+            )
+    elif role:
         subject = f"Application for {role} — {full_name}".rstrip(" —")
         applied_line = (
             f"I recently applied for the {role} position at {company} and "
@@ -334,6 +361,7 @@ def build_draft(job_id: str, contact: dict, meta: dict) -> dict:
         "body": body,
         "attachments": [str(p) for p in attachments.values()],
         "contact": contact,
+        "prior_contact": prior,
     }
 
 
@@ -398,6 +426,20 @@ def print_draft(pkg: dict) -> None:
         print("Attach:  " + ", ".join(Path(a).name for a in pkg["attachments"]))
     else:
         print("Attach:  (no PDFs found — run tailor.py for this job id)")
+    prior = pkg.get("prior_contact") or []
+    if prior:
+        for h in prior:
+            ds = contact_bank.days_since(h.get("date"))
+            ago = f", {ds}d ago" if ds is not None else ""
+            print(f"⚠ Prior contact: [{h.get('status', '?')}] {h.get('role', '')} "
+                  f"({h.get('job_id', '')}){ago} — this draft is a FOLLOW-UP, not a cold intro.")
+        ages = [d for d in (contact_bank.days_since(h.get("date")) for h in prior)
+                if d is not None]
+        recent = min(ages) if ages else None
+        pending = any(h.get("status") in ("draft", "sent") for h in prior)
+        if recent is not None and recent <= 10 and pending:
+            print(f"  ↳ Last touch was only {recent}d ago with no reply — consider "
+                  f"waiting or consolidating rather than emailing again.")
     print("-" * 72)
     print(pkg["body"])
     print("=" * 72)
@@ -512,6 +554,18 @@ def main() -> None:
         sys.exit(f"No contacts listed in {contacts_path(args.job_id).name}.")
 
     packages = [build_draft(args.job_id, c, meta) for c in contacts]
+
+    # Sync the central contact bank (cross-job memory) with this run. Done after
+    # building drafts so each draft's prior-contact lookup sees the pre-run state
+    # (never this job's own touch). Idempotent per (job_id, channel).
+    bank = contact_bank.load_bank()
+    for c in contacts:
+        contact_bank.record_touch(
+            c, company=meta.get("company"), job_id=args.job_id,
+            role=meta.get("role"), channel="cold-intro", status=c.get("status"), bank=bank,
+        )
+    contact_bank.save_bank(bank)
+    print(f"Contact bank synced: {len(contacts)} contact(s).", file=sys.stderr)
 
     if args.json:
         print(json.dumps(packages, indent=2, ensure_ascii=False))
