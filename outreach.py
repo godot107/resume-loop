@@ -115,8 +115,13 @@ def _hunter_key() -> str:
 def _hunter_get(endpoint: str, params: dict) -> dict:
     params = {**params, "api_key": _hunter_key()}
     url = f"{HUNTER_BASE}/{endpoint}?{urllib.parse.urlencode(params)}"
+    # Hunter sits behind Cloudflare, which blocks the default Python-urllib
+    # User-Agent (403 / error 1010). Send a browser-like UA so the request passes.
+    req = urllib.request.Request(
+        url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
+    )
     try:
-        with urllib.request.urlopen(url, timeout=20) as resp:
+        with urllib.request.urlopen(req, timeout=20) as resp:
             payload = json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
         detail = e.read().decode(errors="replace")
@@ -349,9 +354,11 @@ def prep_block(job_id: str) -> str:
 
     projects = resume.get("projects") or []
     if projects:
-        lines.append("Projects on this resume:")
+        lines.append("Projects on this resume (with links — see TASK before including one):")
         for p in projects:
-            lines.append(f"  - {p.get('name')}: {(p.get('bullets') or [''])[0]}")
+            url = p.get("url")
+            suffix = f" [{url}]" if url else ""
+            lines.append(f"  - {p.get('name')}{suffix}: {(p.get('bullets') or [''])[0]}")
 
     jd = DATA / f"jd_{job_id}.txt"
     if jd.exists():
@@ -361,9 +368,13 @@ def prep_block(job_id: str) -> str:
 
     lines.append("")
     lines.append(
-        "TASK: replace [HOOK] with ONE specific, truthful sentence connecting "
-        "the strongest fact above to this role. No invented metrics, titles, or "
-        "tools. Then create a Gmail draft (never send)."
+        "TASK: (1) replace [HOOK] with ONE specific, truthful sentence connecting "
+        "the strongest fact above to this role — no invented metrics, titles, or tools. "
+        "(2) Optionally add ONE link to a genuinely relevant project or blog from the "
+        "list above, chosen for THIS recipient: favor polished, on-topic work, and when "
+        "writing to a recruiter avoid meta / job-application tooling (e.g. a resume-"
+        "tailoring tool can read as mass-applying). Weave it in after the hook; skip if "
+        "none fit cleanly. (3) Then create a Gmail draft (never send)."
     )
     return "\n".join(lines)
 
