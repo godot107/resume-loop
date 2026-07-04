@@ -72,8 +72,11 @@ def build(data_path: str, template_name: str, output_name: str, output_dir: str 
         print("\n".join(result.stdout.splitlines()[-30:]))
         sys.exit(1)
 
-    # Remove auxiliary files.
-    for ext in (".aux", ".log", ".out"):
+    # Remove auxiliary files, but KEEP the .log — lint.py parses it for
+    # "Overfull \hbox" warnings (content spilling into the page margin), the
+    # same way it inspects the .pdf for page count. It is the build artifact
+    # that records margin-breakout, so it is retained alongside the PDF.
+    for ext in (".aux", ".out"):
         aux = output_dir / f"{output_name}{ext}"
         if aux.exists():
             aux.unlink()

@@ -160,9 +160,19 @@ python lint.py --job-id 350452 --json     # machine-readable, for Claude to cons
 It verifies the YAML + PDFs exist, contact fields match between resume and cover
 letter (and flags drift from the base resume), no unescaped LaTeX specials
 (`%` silently eats a line; `& # $` break the build), no leftover `TODO:`, all
-required fields present, each doc renders to one page, and every money/percent
-figure in the cover letter also appears in the resume (so a number in the letter
-can't be fabricated). Severity: **error** blocks shipping; **warn** needs review.
+required fields present, each doc renders to one page, no line spills past the
+text block into the page margin, and every money/percent figure in the cover
+letter also appears in the resume (so a number in the letter can't be
+fabricated). Severity: **error** blocks shipping; **warn** needs review.
+
+The **margin check** is the deterministic guard against content running off the
+edge (a long tech list colliding with its date, a URL past the margin). `pdflatex`
+records these as `Overfull \hbox (Npt too wide)` in its `.log`, so `build.py`
+**keeps the `.log`** next to each PDF and `lint.py` parses it — the same pattern
+as the page-count check reading the PDF via `pdfinfo`. Overflow above
+`OVERFULL_ERROR_PT` (2pt in `lint.py`; below that is sub-pixel and invisible) is
+an **error**. The fix is always to shorten the offending line, then rebuild &
+re-lint.
 
 **Step 2 — judgment (Claude).** Claude reads the `--json` findings as fact, then
 checks only what a rule can't:
