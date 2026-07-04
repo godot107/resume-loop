@@ -85,3 +85,29 @@ Fully automated intake, but requires a persistent listener and some cloud glue.
 Start with **Option A** once you have a Google Cloud project. Add `gspread` to
 `requirements.txt` and a `--write-back` flag to `tailor.py` that updates the
 Status column to `Applied` and stamps the Resume File name after a successful build.
+
+---
+
+## Contact bank (cross-job outreach memory) — shipped, with follow-ups
+
+`contact_bank.py` aggregates the siloed per-job `contacts_<job_id>.yaml` files
+into one store, `data/contacts.yaml` (git-ignored PII), keyed by email. Every
+`outreach.py` draft run upserts the run's contacts (a `history` entry per
+`job_id` + channel), and before drafting, each contact is looked up: a prior
+touch for a *different* job at the same company flips the skeleton from a cold
+intro to a warm follow-up and prints a `⚠ Prior contact` notice plus a recency
+guard. Inspect/curate with `python contact_bank.py [query]` and
+`--mark <email> --job <id> --status <s>`.
+
+### Future enhancements
+
+- **Auto-sync status from Gmail** — scan the Sent folder / replies so `sent` and
+  `replied` update without a manual `--mark` (today status starts at `draft` and
+  you promote it yourself).
+- **Distinct `referral` channel** — record LinkedIn referral-asks separately from
+  `cold-intro` so the follow-up copy adapts (and a referral doesn't read as a
+  second cold email).
+- **Consolidate shared recruiters** — when two open roles share a recruiter,
+  offer to draft ONE email mentioning both rather than two follow-ups.
+- **Merge/de-dupe command** — reconcile a person stored under a name-key and an
+  email-key (record_touch re-keys on write; add an explicit merge for edge cases).
