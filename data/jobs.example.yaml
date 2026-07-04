@@ -1,0 +1,17 @@
+# Job manifest template — copy to data/jobs.yaml (git-ignored) and fill in.
+#
+# Maps each opaque output/<job_id> folder to a readable company/role/status, so
+# `python catalog.py` can render a browsable index (output/INDEX.md) without
+# renaming the id-keyed folders the pipeline depends on.
+#
+# status: one of  built | applied | interview | offer | rejected | withdrawn
+
+jobs:
+  deloitte_ds:                     # the job id == the output/ folder name
+    company: Deloitte
+    role: Data Scientist
+    status: applied
+  R14545:
+    company: Celonis
+    role: Lead Value Engineer, Energy
+    status: interview

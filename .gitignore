@@ -18,6 +18,7 @@ data/cover_letter_*.yaml
 data/application_*.yaml
 data/contacts_*.yaml
 data/contacts.yaml
+data/jobs.yaml
 data/jd_*.txt
 
 # ...but keep the committed example bank (matched by the pattern above)
