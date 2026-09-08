@@ -23,3 +23,7 @@ data/jd_*.txt
 
 # ...but keep the committed example bank (matched by the pattern above)
 !data/application_bank.example.yaml
+
+# Archived closed applications (same personal data as above, moved by
+# `python catalog.py --archive` — the patterns above don't reach into it)
+data/_archive/
