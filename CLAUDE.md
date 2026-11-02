@@ -28,6 +28,17 @@ Options:
 | `--template` | `resume_template.tex` | Template in `templates/` |
 | `--output` | `resume` | Output filename (no extension) |
 | `--output-dir` | `output` | Directory to write to (created if missing) |
+| `--no-links` | off | Render without clickable links (portals that reject PDF "active contents") |
+
+**Portals that reject "active contents".** Some application systems (SAP
+SuccessFactors is the known one) run an upload filter that rejects any PDF
+carrying actions or link annotations, with the message *"The system does not
+allow files with active contents."* The accepted-file-type list is a red herring —
+the PDF is fine, its `/OpenAction` and `/URI` link annotations are not. Rebuild
+that job's documents with `--no-links` (`tailor.py` takes the same flag): hyperref
+switches to draft mode, so the URLs still print as readable text but the PDF
+contains no annotations and no document-level action. Keep the linked version for
+every other portal and for emailing.
 
 ## Creating a variant
 

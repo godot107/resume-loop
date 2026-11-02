@@ -14,7 +14,14 @@
 \usepackage[usenames,dvipsnames]{color}
 \usepackage{verbatim}
 \usepackage{enumitem}
+<% if no_links %>
+% no_links: some application portals (e.g. SAP SuccessFactors) reject PDFs
+% containing link annotations as "active contents" — draft mode renders the
+% same text with no /Annots and no /OpenAction.
+\usepackage[hidelinks,draft]{hyperref}
+<% else %>
 \usepackage[hidelinks]{hyperref}
+<% endif %>
 \usepackage{fancyhdr}
 \usepackage[english]{babel}
 \usepackage{tabularx}

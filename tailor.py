@@ -34,7 +34,7 @@ def recruiter_filename(data_path: Path, label: str) -> str:
     return f"{clean}_{label}" if clean else label.lower()
 
 
-def build_all(job_id: str) -> dict[str, Path]:
+def build_all(job_id: str, no_links: bool = False) -> dict[str, Path]:
     outputs = {}
     for doc, template, label in DOCS:
         data_path = BASE / "data" / f"{doc}_{job_id}.yaml"
@@ -56,6 +56,7 @@ def build_all(job_id: str) -> dict[str, Path]:
                 "--template", template,
                 "--output", output_name,
                 "--output-dir", out_subdir,
+                *(["--no-links"] if no_links else []),
             ],
             capture_output=True,
             text=True,
@@ -76,9 +77,14 @@ def main() -> None:
                     "Tailored YAML files must already exist in data/."
     )
     parser.add_argument("--job-id", required=True, help="Job ID (e.g. 352997)")
+    parser.add_argument(
+        "--no-links",
+        action="store_true",
+        help="Render without clickable links (for portals that reject PDF 'active contents')",
+    )
     args = parser.parse_args()
 
-    outputs = build_all(args.job_id)
+    outputs = build_all(args.job_id, args.no_links)
     for doc, path in outputs.items():
         print(f"{doc:14}: {path}")
 
