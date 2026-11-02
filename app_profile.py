@@ -79,7 +79,9 @@ def build_profile(job_id: str | None = None) -> tuple[dict[str, str], dict[str, 
     experience = resume.get("experience") or []
     if experience:
         cur = experience[0]
-        title = str(cur.get("title", "")).strip()
+        # Forms want the official title: drop a tailored " -- ..." suffix and LaTeX escapes.
+        title = re.split(r"\s+--\s+", str(cur.get("title", "")).strip())[0]
+        title = re.sub(r"\\([&%$#_])", r"\1", title)
         company = re.sub(r"\s*\(.*\)\s*$", "", str(cur.get("company", "")).strip())
         if company:
             fields["current_company"] = company

@@ -15,6 +15,8 @@ It checks, for a job id:
   - no unescaped LaTeX specials (% silently eats a line; & # $ break the build)
   - no leftover TODO: placeholders, and required fields are present
   - the resume / cover letter render to a single page
+  - no line spills past the text block into the page margin (Overfull \hbox in
+    the retained pdflatex .log — e.g. a tech list colliding with its date)
   - every money/percent figure in the cover letter also appears in the resume
     (a fabricated metric in the letter has nothing to trace back to)
 
@@ -47,6 +49,12 @@ REQUIRED_RESUME = ("name", "email", "phone", "experience")
 LATEX_ERROR_SPECIALS = ("%", "&", "#", "$")
 MONEY_RE = re.compile(r"\$\s?\d[\d,\.]*\s*(?:billion|million|thousand|[kmb])?", re.IGNORECASE)
 PERCENT_RE = re.compile(r"\d+(?:\.\d+)?\s?%")
+# pdflatex logs "Overfull \hbox (12.3pt too wide)" when a line spills past the
+# text block into the page margin. Below ~2pt the overflow is sub-pixel and not
+# visible; at/above it a tech list collides with its date, a URL runs off the
+# edge, etc. — a real, shippable-blocking defect.
+OVERFULL_RE = re.compile(r"Overfull \\hbox \(([\d.]+)pt too wide\)")
+OVERFULL_ERROR_PT = 2.0
 
 
 class Findings:
@@ -105,6 +113,14 @@ def _figures(node) -> set[str]:
         for m in MONEY_RE.findall(raw) + PERCENT_RE.findall(raw):
             figs.add(re.sub(r"\s+", "", m).lower())
     return figs
+
+
+def _overfull(log_path: Path) -> list[float]:
+    """Points-too-wide for each Overfull \\hbox in a retained pdflatex log."""
+    if not log_path.exists():
+        return []
+    text = log_path.read_text(errors="ignore")
+    return [float(pt) for pt in OVERFULL_RE.findall(text)]
 
 
 def _page_count(pdf: Path) -> int | None:
@@ -205,11 +221,17 @@ def lint(resume_path: Path, cover_path: Path, job_id: str | None, f: Findings) -
                 f.warn("figures",
                        f"figure {fig!r} in cover letter not found in resume — verify it is real")
 
-    # --- page counts ---------------------------------------------------------
+    # --- page counts + margin overflow ---------------------------------------
+    # Both inspect a build artifact left in output/<id>: the .pdf (page count,
+    # via pdfinfo) and the retained .log (Overfull \hbox = content past the
+    # margin). Deterministic — same build, same findings.
     if job_id:
         folder = OUTPUT / job_id
-        for kind, pat in (("resume", "*Resume*.pdf"), ("cover letter", "*Cover*.pdf")):
-            pdfs = list(folder.glob(pat)) if folder.exists() else []
+        for kind, pdf_pat, log_pat in (
+            ("resume", "*Resume*.pdf", "*Resume*.log"),
+            ("cover letter", "*Cover*.pdf", "*Cover*.log"),
+        ):
+            pdfs = list(folder.glob(pdf_pat)) if folder.exists() else []
             if not pdfs:
                 f.warn("pdf", f"{kind} PDF not found in {folder} — run tailor.py")
                 continue
@@ -220,6 +242,18 @@ def lint(resume_path: Path, cover_path: Path, job_id: str | None, f: Findings) -
                 f.error("pdf", f"{kind} is {pages} pages ({pdfs[0].name}); trim to 1")
             else:
                 f.ok("pdf", f"{kind} is 1 page")
+
+            logs = list(folder.glob(log_pat)) if folder.exists() else []
+            if not logs:
+                f.warn("margin", f"{kind} build log not found — rebuild to check margins")
+                continue
+            over = [pt for pt in _overfull(logs[0]) if pt > OVERFULL_ERROR_PT]
+            if over:
+                f.error("margin",
+                        f"{kind} has {len(over)} line(s) spilling into the margin "
+                        f"(worst {max(over):.1f}pt too wide); shorten the offending line")
+            else:
+                f.ok("margin", f"{kind} stays within page margins")
 
 
 def _render_human(f: Findings, job_id: str | None) -> None:

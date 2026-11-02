@@ -26,7 +26,13 @@ def make_env(template_dir: str) -> jinja2.Environment:
     )
 
 
-def build(data_path: str, template_name: str, output_name: str, output_dir: str = "output") -> None:
+def build(
+    data_path: str,
+    template_name: str,
+    output_name: str,
+    output_dir: str = "output",
+    no_links: bool = False,
+) -> None:
     data_file = Path(data_path)
     if not data_file.exists():
         sys.exit(f"Data file not found: {data_path}")
@@ -41,6 +47,9 @@ def build(data_path: str, template_name: str, output_name: str, output_dir: str 
         template = env.get_template(template_name)
     except jinja2.TemplateNotFound:
         sys.exit(f"Template not found in templates/: {template_name}")
+
+    # Strip hyperlinks when the target portal rejects them (see --no-links).
+    data["no_links"] = no_links
 
     rendered = template.render(**data)
 
@@ -72,8 +81,11 @@ def build(data_path: str, template_name: str, output_name: str, output_dir: str 
         print("\n".join(result.stdout.splitlines()[-30:]))
         sys.exit(1)
 
-    # Remove auxiliary files.
-    for ext in (".aux", ".log", ".out"):
+    # Remove auxiliary files, but KEEP the .log — lint.py parses it for
+    # "Overfull \hbox" warnings (content spilling into the page margin), the
+    # same way it inspects the .pdf for page count. It is the build artifact
+    # that records margin-breakout, so it is retained alongside the PDF.
+    for ext in (".aux", ".out"):
         aux = output_dir / f"{output_name}{ext}"
         if aux.exists():
             aux.unlink()
@@ -99,9 +111,14 @@ def main() -> None:
         default="output",
         help="Directory to write outputs to (created if missing)",
     )
+    parser.add_argument(
+        "--no-links",
+        action="store_true",
+        help="Render without clickable links (for portals that reject PDF 'active contents')",
+    )
     args = parser.parse_args()
 
-    build(args.data, args.template, args.output, args.output_dir)
+    build(args.data, args.template, args.output, args.output_dir, args.no_links)
 
 
 if __name__ == "__main__":

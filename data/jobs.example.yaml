@@ -4,7 +4,10 @@
 # `python catalog.py` can render a browsable index (output/INDEX.md) without
 # renaming the id-keyed folders the pipeline depends on.
 #
-# status: one of  built | applied | interview | offer | rejected | withdrawn
+# status: one of  built | applied | interview | offer | open | deferred
+#                 | rejected | ghosted | expired | withdrawn
+#   rejected/ghosted/expired/withdrawn are "closed": `python catalog.py --archive`
+#   sweeps them out of output/ and data/ into their _archive/ dirs.
 
 jobs:
   deloitte_ds:                     # the job id == the output/ folder name
