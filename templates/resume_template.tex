@@ -25,6 +25,8 @@
 \usepackage{fancyhdr}
 \usepackage[english]{babel}
 \usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{tikz}
 \input{glyphtounicode}
 
 \pagestyle{fancy}
@@ -90,6 +92,17 @@
 
 %----------HEADING----------
 \begin{center}
+<% if qrcode %>
+    % QR code (portfolio) — inline overlay anchored top-right of the page;
+    % rides this line so it adds no vertical space (keeps the resume one page).
+    \tikz[remember picture, overlay]{%
+      \node[anchor=north east, inner sep=0pt]
+        at ([xshift=-0.35in, yshift=-0.2in]current page.north east) {%
+          \begin{tabular}{c}
+            \includegraphics[width=0.62in]{<< qrcode >>}<% if not website %> \\[1pt]
+            {\tiny << qrcode_label if qrcode_label else website >>}<% endif %>
+          \end{tabular}};}%
+<% endif %>
     \textbf{\Huge \scshape << name >>} \\ \vspace{1pt}
     \small << phone >> $|$ \href{mailto:<< email >>}{\underline{<< email >>}} $|$
     \href{<< linkedin_url >>}{\underline{<< linkedin >>}} $|$
